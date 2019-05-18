@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: ./docker/servermetric/
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      - EXCONFIG=/static/app.conf
+      - EXBIN=/static/ex
+    volumes:
+      - /home/ubuntu:/static
+    depends_on:
+      - database
+      - redis
+    links:
+      - database
+      - redis
+      - monitor
+
+  database:
+    build:
+      context: ./docker/db/
+      dockerfile: Dockerfile
+    ports:
+      - 5432:5432
+    environment:
+      - PGDATA=/pgdata
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - /home/ubuntu/db:/pgdata
+
+  ui:
+    build:
+      context: ./docker/monitor/
+      dockerfile: Dockerfile
+    ports:
+      - 9011:9011
+    environment:
+      - MONITORBIN=/static/go-monitor
+      - GOMONITORCONF=/static/go-monitor.config.yml
+    volumes:
+      - /home/ubuntu/monitor:/static
+    depends_on:
+      - database
+      - redis

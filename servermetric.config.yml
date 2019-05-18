@@ -1,0 +1,18 @@
+alertconfig:
+ alerts:
+  - if: "SELECT * FROM table_schema WHERE timestamp > {{sub .TimestampSec 360000}}"
+    then: "ok {{.V1}} | {{.V2}} | {{.V3}}"
+    else: "dont't ok"
+  - if: "SELECT * FROM table_schema WHERE timestamp > {{sub .TimestampSec 360}}"
+    then: "dont't ok"
+    else: "ok"
+  - if: "SELECT AVG(cpu_use) FROM table_schema HAVING AVG(cpu_use) > 0.6"
+    then: "warning avg cpu: {{.V1}}"
+    else: ""
+ pushers: [ "telegram" ]
+ checkeveryseconds: 5
+ checkconnservereveryseconds: 60
+pushers:
+ telegram:
+  token: "841563697:AAEDpNQBkNpFSUtae_ZgSRhxKzeJRntdrik"
+  data: "/Users/peterkorotkiy/docker/ex/telegram-data.cfg"

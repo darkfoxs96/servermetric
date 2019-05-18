@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  database:
+    image: yandex/clickhouse-server:19.6.2.11
+    ports:
+      - 8124:8123
+      - 9001:9000
+    volumes:
+      - /Users/peterkorotkiy/docker/clickhouse:/var/lib/clickhouse
+      - /Users/peterkorotkiy/docker/ex/users.xml:/etc/clickhouse-server/users.xml
+      - /Users/peterkorotkiy/docker/ex/config.xml:/etc/clickhouse-server/config.xml

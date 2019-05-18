@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  database-ui:
+    image: spoonest/clickhouse-tabix-web-client:stable
+#    environment:
+#      - DEFAULT=/Users/peterkorotkiy/docker/ex/default_no_pass
+    ports:
+      - 8085:80
+#    command: ./start.sh USER='myuser' PASSWORD='mypass'
+#    volumes:
+#      - /Users/peterkorotkiy/docker/ex/default_no_pass:/usr/src/app/default_no_pass
