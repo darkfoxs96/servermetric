@@ -3,13 +3,12 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/gocraft/web"
+	"net/http"
 )
 
 var ErrBadJson = fmt.Errorf("bad json data")
 
-func ParseJson(r *web.Request, obj interface{}) (err error) {
+func ParseJson(r *http.Request, obj interface{}) (err error) {
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(obj)
 	_ = r.Body.Close()

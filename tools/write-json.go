@@ -4,18 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/gocraft/web"
-
-	"ecomm/errorR"
 )
 
-func WriteJson(w web.ResponseWriter, err error, d interface{}) {
+type Error struct {
+	Status int    `json:"status"`
+	Msg    string `json:"msg"`
+}
+
+func WriteJson(w http.ResponseWriter, r *http.Request, err error, d interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		err = json.NewEncoder(w).Encode(errorR.Error{Status: 400, Msg: err.Error()})
+		err = json.NewEncoder(w).Encode(Error{Status: 400, Msg: err.Error()})
 		if err != nil {
 			fmt.Println(err)
 		}

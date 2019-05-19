@@ -1,18 +1,51 @@
+# settings alerts
 alertconfig:
  alerts:
+
   - if: "SELECT * FROM table_schema WHERE timestamp > {{sub .TimestampSec 360000}}"
     then: "ok {{.V1}} | {{.V2}} | {{.V3}}"
     else: "dont't ok"
+
   - if: "SELECT * FROM table_schema WHERE timestamp > {{sub .TimestampSec 360}}"
     then: "dont't ok"
     else: "ok"
+
   - if: "SELECT AVG(cpu_use) FROM table_schema HAVING AVG(cpu_use) > 0.6"
     then: "warning avg cpu: {{.V1}}"
     else: ""
- pushers: [ "telegram" ]
- checkeveryseconds: 5
+
+ pushers: [ telegram ]
+ checkeveryseconds: 15
  checkconnservereveryseconds: 60
+ dataconnects: /Users/peterkorotkiy/go/src/github.com/darkfoxs96/servermetric/connects-data.cfg
+
+# telegram, email ... Now supported only 'telegram bot'
 pushers:
  telegram:
   token: "841563697:AAEDpNQBkNpFSUtae_ZgSRhxKzeJRntdrik"
-  data: "/Users/peterkorotkiy/docker/ex/telegram-data.cfg"
+  data: /Users/peterkorotkiy/go/src/github.com/darkfoxs96/servermetric/telegram-data.cfg
+
+# params for connect to clickhouse
+database:
+  username: "clickhouse"
+  password: "clickhouse"
+  database: "default"
+  host: "localhost"
+  port: "9001"
+
+# create table by metrics
+metrics:
+  cpu_use:
+    timestamp: "UInt32 DEFAULT 0" # In seconds
+    cpu_use: "Float32 DEFAULT 0.0" # 0.63
+    name: "String DEFAULT ''" # https://site.com/1
+  memory_use:
+    timestamp: "UInt32 DEFAULT 0" # In seconds
+    memory_use: "UInt32 DEFAULT 0" # KB
+    all_memory: "UInt32 DEFAULT 0" # KB
+    name: "String DEFAULT ''" # https://site2.com/3
+
+# server settings
+server:
+  port: "9081"
+  key: "SDDEDpNQBkNpFSUtae_ZgSRhxKzeJRntdrik"

@@ -29,6 +29,7 @@ type AlertConfig struct {
 	Pushers                     []string
 	CheckEverySeconds           int64
 	CheckConnServerEverySeconds int64
+	DataConnects                string
 }
 
 type ServerConnect struct {
@@ -39,7 +40,8 @@ type ServerConnect struct {
 
 // Errors
 var (
-	ErrNotFoundID = fmt.Errorf("Not found connection by id")
+	ErrNotFoundID   = fmt.Errorf("Not found connection by id")
+	ErrNotFoundFile = fmt.Errorf("Not found file for connect data")
 )
 
 var (
@@ -56,6 +58,9 @@ var (
 
 func Run(config *AlertConfig) {
 	alertConfig = config
+	if serverConnMapPath == "" {
+		serverConnMapPath = alertConfig.DataConnects
+	}
 
 	for _, v := range alertConfig.Alerts {
 		if _, err := AppendAlert(v); err != nil {
@@ -80,22 +85,21 @@ func Run(config *AlertConfig) {
 
 	if serverConnMapPath != "" {
 		b, err := ioutil.ReadFile(serverConnMapPath)
-		if err != nil {
-			panic(err)
-		}
+		if err == nil {
 
-		serverConnMapMutex.Lock()
-		if err = json.Unmarshal(b, &serverConnMap); err != nil {
-			serverConnMapMutex.Unlock()
-			panic(err)
-		}
-
-		for ID, _ := range serverConnMap {
-			if ID > serverConnMapIncr {
-				serverConnMapIncr = ID
+			if err = json.Unmarshal(b, &serverConnMap); err == nil {
+				serverConnMapMutex.Lock()
+				for ID, _ := range serverConnMap {
+					if ID > serverConnMapIncr {
+						serverConnMapIncr = ID
+					}
+				}
+				serverConnMapMutex.Unlock()
 			}
+
+		} else {
+			fmt.Println(ErrNotFoundFile)
 		}
-		serverConnMapMutex.Unlock()
 	}
 
 	go func() {
@@ -136,7 +140,7 @@ func AppendAlert(alertParams *AlertParams) (alert *alertmodel.Alert, err error) 
 }
 
 // AppendConnection new conn
-func AppendConnection(conn *ServerConnect) (err error, ID int64) {
+func AppendConnection(conn *ServerConnect) (ID int64, err error) {
 	conn.LastConnect = time.Now().Unix()
 
 	serverConnMapMutex.Lock()
