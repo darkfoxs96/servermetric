@@ -2,21 +2,25 @@
 alertconfig:
  alerts:
 
-  - if: "SELECT * FROM table_schema WHERE timestamp > {{sub .TimestampSec 360000}}"
-    then: "ok {{.V1}} | {{.V2}} | {{.V3}}"
-    else: "dont't ok"
+  - if: "SELECT tc.name, AVG(tc.cpu_use)
+         FROM cpu_use AS tc
+         WHERE tc.timestamp > {{sub .TimestampSec (mul 60 60)}}
+         GROUP BY tc.name
+         HAVING AVG(tc.cpu_use) > 0.7"
+    then: "warning avg cpu: {{.V2}} in server: {{.V1}}"
+    else: ""
 
-  - if: "SELECT * FROM table_schema WHERE timestamp > {{sub .TimestampSec 360}}"
-    then: "dont't ok"
-    else: "ok"
-
-  - if: "SELECT AVG(cpu_use) FROM table_schema HAVING AVG(cpu_use) > 0.6"
-    then: "warning avg cpu: {{.V1}}"
+  - if: "SELECT tm.name, AVG(tm.memory_use)
+         FROM memory_use AS tm
+         WHERE tm.timestamp > {{sub .TimestampSec (mul 60 60)}}
+         GROUP BY tm.name
+         HAVING AVG(tm.memory_use) > {{mul 50 1024}}"
+    then: "warning avg memory: {{.V2}} in server: {{.V1}}"
     else: ""
 
  pushers: [ telegram ]
- checkeveryseconds: 15
- checkconnservereveryseconds: 60
+ checkeveryseconds: 360
+ checkconnservereveryseconds: 180
  dataconnects: /Users/peterkorotkiy/go/src/github.com/darkfoxs96/servermetric/connects-data.cfg
 
 # telegram, email ... Now supported only 'telegram bot'
@@ -36,16 +40,16 @@ database:
 # create table by metrics
 metrics:
   cpu_use:
-    timestamp: "UInt32 DEFAULT 0" # In seconds
-    cpu_use: "Float32 DEFAULT 0.0" # 0.63
+    timestamp: "Int64 DEFAULT 0" # In seconds
+    cpu_use: "Float64 DEFAULT 0.0" # 0.63
     name: "String DEFAULT ''" # https://site.com/1
   memory_use:
-    timestamp: "UInt32 DEFAULT 0" # In seconds
-    memory_use: "UInt32 DEFAULT 0" # KB
-    all_memory: "UInt32 DEFAULT 0" # KB
+    timestamp: "Int64 DEFAULT 0" # In seconds
+    memory_use: "Int64 DEFAULT 0" # KB
+    all_memory: "Int64 DEFAULT 0" # KB
     name: "String DEFAULT ''" # https://site2.com/3
 
 # server settings
 server:
-  port: "9081"
+  port: "9082"
   key: "SDDEDpNQBkNpFSUtae_ZgSRhxKzeJRntdrik"
