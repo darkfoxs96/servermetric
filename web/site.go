@@ -3,6 +3,9 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type ServerConfig struct {
@@ -22,12 +25,12 @@ func Run(c *ServerConfig) {
 	http.HandleFunc("/api/connect", ConnectController)
 	http.HandleFunc("/api/disconnect", DisconnectController)
 
-	//interrupt := make(chan os.Signal, 2)
-	//signal.Notify(interrupt,
-	//	syscall.SIGINT,
-	//	syscall.SIGTERM,
-	//	syscall.SIGHUP,
-	//	syscall.SIGQUIT)
+	interrupt := make(chan os.Signal, 2)
+	signal.Notify(interrupt,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGHUP,
+		syscall.SIGQUIT)
 
 	srv := &http.Server{
 		Addr: ":" + config.Port,
@@ -39,9 +42,9 @@ func Run(c *ServerConfig) {
 
 	fmt.Println("The service is ready to listen and serve. PORT: " + config.Port)
 
-	//sig := <-interrupt
-	//fmt.Println("signal: ", sig)
-	//fmt.Println("exiting")
-	////
-	//fmt.Println("The service is shutting down...")
+	sig := <-interrupt
+	fmt.Println("signal: ", sig)
+	fmt.Println("exiting")
+	//
+	fmt.Println("The service is shutting down...")
 }

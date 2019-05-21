@@ -53,5 +53,5 @@ func main() {
 	alert.Run(config.AlertConfig)
 
 	// API
-	go web.Run(config.Server)
+	web.Run(config.Server)
 }
