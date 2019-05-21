@@ -214,18 +214,24 @@ func checkAlerts() (err error) {
 			return err2
 		}
 
+		outMsg := ""
 		for _, msg := range msgTHEN {
-			for _, pusherName := range alertConfig.Pushers {
-				err = pusher.Push(pusherName, msg)
-				if err != nil {
-					return
-				}
+			if outMsg != "" {
+				outMsg += "\n"
 			}
+			outMsg += msg
 		}
 
 		for _, msg := range msgELSE {
+			if outMsg != "" {
+				outMsg += "\n"
+			}
+			outMsg += msg
+		}
+
+		if outMsg != "" {
 			for _, pusherName := range alertConfig.Pushers {
-				err = pusher.Push(pusherName, msg)
+				err = pusher.Push(pusherName, outMsg)
 				if err != nil {
 					return
 				}

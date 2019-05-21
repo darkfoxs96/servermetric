@@ -161,6 +161,7 @@ func (a *Alert) Check(DB *sql.DB, data interface{}) (msgTHEN, msgELSE []string, 
 		out.V9 = nil
 		out.V10 = nil
 	}
+	_ = row.Close()
 
 	if !isTrue {
 		buf.Reset()

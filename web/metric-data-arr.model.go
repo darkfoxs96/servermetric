@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/buger/jsonparser"
 )
@@ -56,6 +57,10 @@ func (m *MetricDataArr) getObjByType(t, data string) (obj interface{}, err error
 	switch t {
 	case "string":
 		return data, nil
+		// date
+	case "dateRFC3339":
+		t, err := time.Parse(time.RFC3339, data)
+		return t, err
 		// int
 	case "int":
 		return strconv.Atoi(data)

@@ -2,12 +2,11 @@ package web
 
 import (
 	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/darkfoxs96/servermetric/alert"
 	"github.com/darkfoxs96/servermetric/db"
 	"github.com/darkfoxs96/servermetric/tools"
+	"net/http"
+	"strings"
 )
 
 type MetricData struct {
@@ -57,16 +56,15 @@ func MetricController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := db.DB.Begin()
-	if err != nil {
-		tools.WriteJson(w, r, err, nil)
-		return
-	}
-	defer tx.Rollback()
-
 	for name, metricData := range metric.Metrics {
 		if len(metricData.Data.Data) == 0 {
 			continue
+		}
+
+		tx, err := db.DB.Begin()
+		if err != nil {
+			tools.WriteJson(w, r, err, nil)
+			return
 		}
 
 		pLen := len(metricData.Data.Data[0])
@@ -76,8 +74,13 @@ func MetricController(w http.ResponseWriter, r *http.Request) {
 		}
 		values = values[:len(values)-1]
 
-		stmt, err := tx.Prepare(`INSERT INTO ` + name + ` (` + metricData.Fields + `) VALUES (` + values + `);`)
+		sqlReq := `INSERT INTO ` + name + ` (` + metricData.Fields + `) VALUES (` + values + `);`
+		stmt, err := tx.Prepare(sqlReq)
 		if err != nil {
+			if stmt != nil {
+				_ = stmt.Close()
+			}
+			_ = tx.Rollback()
 			tools.WriteJson(w, r, err, nil)
 			return
 		}
@@ -93,17 +96,17 @@ func MetricController(w http.ResponseWriter, r *http.Request) {
 
 			if _, err = stmt.Exec(params...); err != nil {
 				_ = stmt.Close()
+				_ = tx.Rollback()
 				tools.WriteJson(w, r, err, nil)
 				return
 			}
 		}
 
 		_ = stmt.Close()
-	}
-
-	if err = tx.Commit(); err != nil {
-		tools.WriteJson(w, r, err, nil)
-		return
+		if err = tx.Commit(); err != nil {
+			tools.WriteJson(w, r, err, nil)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

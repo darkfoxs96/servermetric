@@ -24,7 +24,7 @@ var (
 
 func Run(p *DBConfig) {
 	params = p
-	connectDB(p.Username, p.Password, p.Database, p.Host, p.Port)
+	connectDB(params.Username, params.Password, params.Database, params.Host, params.Port)
 }
 
 func connectDB(login, pass, dbName, h, p string) {
@@ -42,7 +42,7 @@ func connectDB(login, pass, dbName, h, p string) {
 		}
 	}()
 
-	db, err := sql.Open("clickhouse", "tcp://"+h+":"+p+"?debug=false&username="+login+"&password="+pass+"&database="+dbName+"&")
+	db, err := sql.Open("clickhouse", "tcp://"+h+":"+p+"?debug=false&compress=false&username="+login+"&password="+pass+"&database="+dbName+"&")
 	if err != nil {
 		return
 	}
@@ -61,13 +61,19 @@ func AddMetrics(metrics map[string]map[string]string) (err error) {
 
 	for name, params := range metrics {
 		sqlStr = "CREATE TABLE IF NOT EXISTS " + name + " ("
+		mode := ""
 
 		for fieldName, typeField := range params {
+			if fieldName == "ENGINE" {
+				mode = typeField
+				continue
+			}
+
 			sqlStr += ` "` + fieldName + `" ` + typeField + `,`
 		}
 
 		sqlStr = sqlStr[:len(sqlStr)-1]
-		sqlStr += ") engine=Memory"
+		sqlStr += ") ENGINE = " + mode + ";"
 
 		_, err = DB.Exec(sqlStr)
 		if err != nil {

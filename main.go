@@ -3,7 +3,6 @@ package main
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/darkfoxs96/servermetric/alert"
@@ -31,7 +30,7 @@ func main() {
 
 	b, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		log.Println("can't load data:", err)
+		panic(err)
 	}
 
 	err = yaml.Unmarshal(b, config)
@@ -54,5 +53,5 @@ func main() {
 	alert.Run(config.AlertConfig)
 
 	// API
-	web.Run(config.Server)
+	go web.Run(config.Server)
 }

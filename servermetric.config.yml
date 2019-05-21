@@ -4,7 +4,7 @@ alertconfig:
 
   - if: "SELECT tc.name, AVG(tc.cpu_use)
          FROM cpu_use AS tc
-         WHERE tc.timestamp > {{sub .TimestampSec (mul 60 60)}}
+         WHERE tc.event_datetime > subtractHours(NOW(), 1)
          GROUP BY tc.name
          HAVING AVG(tc.cpu_use) > 0.7"
     then: "warning avg cpu: {{.V2}} in server: {{.V1}}"
@@ -12,15 +12,15 @@ alertconfig:
 
   - if: "SELECT tm.name, AVG(tm.memory_use)
          FROM memory_use AS tm
-         WHERE tm.timestamp > {{sub .TimestampSec (mul 60 60)}}
+         WHERE tm.event_datetime > subtractHours(NOW(), 1)
          GROUP BY tm.name
-         HAVING AVG(tm.memory_use) > {{mul 50 1024}}"
+         HAVING AVG(tm.memory_use) > 0.7"
     then: "warning avg memory: {{.V2}} in server: {{.V1}}"
     else: ""
 
  pushers: [ telegram ]
- checkeveryseconds: 360
- checkconnservereveryseconds: 180
+ checkeveryseconds: 22
+ checkconnservereveryseconds: 42
  dataconnects: /Users/peterkorotkiy/go/src/github.com/darkfoxs96/servermetric/connects-data.cfg
 
 # telegram, email ... Now supported only 'telegram bot'
@@ -40,14 +40,17 @@ database:
 # create table by metrics
 metrics:
   cpu_use:
-    timestamp: "Int64 DEFAULT 0" # In seconds
-    cpu_use: "Float64 DEFAULT 0.0" # 0.63
-    name: "String DEFAULT ''" # https://site.com/1
+    ENGINE: MergeTree(event_date, (name), 8192)
+    event_date: "Date DEFAULT NOW()"
+    event_datetime: "DateTime DEFAULT NOW()"
+    cpu_use: "Float64 DEFAULT 0.0"
+    name: "String DEFAULT ''"
   memory_use:
-    timestamp: "Int64 DEFAULT 0" # In seconds
-    memory_use: "Int64 DEFAULT 0" # KB
-    all_memory: "Int64 DEFAULT 0" # KB
-    name: "String DEFAULT ''" # https://site2.com/3
+    ENGINE: MergeTree(event_date, (name), 8192)
+    event_date: "Date DEFAULT NOW()"
+    event_datetime: "DateTime DEFAULT NOW()"
+    memory_use: "Float64 DEFAULT 0.0"
+    name: "String DEFAULT ''"
 
 # server settings
 server:

@@ -7,6 +7,7 @@ services:
       - 8124:8123
       - 9001:9000
     volumes:
-      - /Users/peterkorotkiy/docker/clickhouse:/var/lib/clickhouse
-      - /Users/peterkorotkiy/docker/ex/users.xml:/etc/clickhouse-server/users.xml
-      - /Users/peterkorotkiy/docker/ex/config.xml:/etc/clickhouse-server/config.xml
+      - /Users/peterkorotkiy/docker/clickhouse/data:/var/lib/clickhouse
+      - /Users/peterkorotkiy/docker/clickhouse/log:/var/log/clickhouse-server
+      - /Users/peterkorotkiy/docker/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+      - /Users/peterkorotkiy/docker/clickhouse/config.xml:/etc/clickhouse-server/config.xml
